@@ -1,0 +1,193 @@
+{
+  "categories": [
+    {
+      "id": "284a6f0f-18a6-4ff1-973f-6b2ce9d9988e",
+      "nome": "Grãos",
+      "slug": "graos"
+    },
+    {
+      "id": "d2db13c4-7216-4b67-8229-607bac593172",
+      "nome": "Farinhas",
+      "slug": "farinhas"
+    },
+    {
+      "id": "ae426628-d0e8-4c03-81d4-3aed5cd30a81",
+      "nome": "Temperos",
+      "slug": "temperos"
+    },
+    {
+      "id": "e2a46b14-5999-4c74-8c87-6f3ca9ff7612",
+      "nome": "Frutas secas",
+      "slug": "frutas-secas"
+    },
+    {
+      "id": "b65d26e1-3740-4c82-9b16-ec8982630311",
+      "nome": "Casa",
+      "slug": "casa"
+    },
+    {
+      "id": "5ad52341-9f5b-44b6-9205-f226c9317ed2",
+      "nome": "Cuidados pessoais",
+      "slug": "cuidados-pessoais"
+    },
+    {
+      "id": "c18ad079-8549-46b5-b4b6-31d0f7ddfe73",
+      "nome": "Sem glúten",
+      "slug": "sem-gluten"
+    }
+  ],
+  "products": [
+    {
+      "id": "dbca43c2-c482-4f48-bfb3-3d9693e8cbbe",
+      "categoriaId": "284a6f0f-18a6-4ff1-973f-6b2ce9d9988e",
+      "nome": "Arroz Branco 1kg",
+      "preco": 6.5,
+      "estoque": 120,
+      "ativo": true,
+      "imagemUrl": null,
+      "descricao": ""
+    },
+    {
+      "id": "a7705c79-1c33-4fb3-b00d-4c3ff4627a39",
+      "categoriaId": "284a6f0f-18a6-4ff1-973f-6b2ce9d9988e",
+      "nome": "Feijão Carioca 1kg",
+      "preco": 8.9,
+      "estoque": 90,
+      "ativo": true,
+      "imagemUrl": null,
+      "descricao": ""
+    },
+    {
+      "id": "c8841e18-579a-4f4a-8701-4dc539fe4c9f",
+      "categoriaId": "284a6f0f-18a6-4ff1-973f-6b2ce9d9988e",
+      "nome": "Lentilha 500g",
+      "preco": 7.2,
+      "estoque": 50,
+      "ativo": true,
+      "imagemUrl": null,
+      "descricao": ""
+    },
+    {
+      "id": "3fdd3d7d-8673-4e38-8ed3-57c068c229d7",
+      "categoriaId": "d2db13c4-7216-4b67-8229-607bac593172",
+      "nome": "Farinha de Trigo 1kg",
+      "preco": 5.4,
+      "estoque": 100,
+      "ativo": true,
+      "imagemUrl": null,
+      "descricao": ""
+    },
+    {
+      "id": "3487316d-529e-486f-aebe-d2c6d2fabe4e",
+      "categoriaId": "d2db13c4-7216-4b67-8229-607bac593172",
+      "nome": "Farinha de Mandioca 500g",
+      "preco": 6.1,
+      "estoque": 60,
+      "ativo": true,
+      "imagemUrl": null,
+      "descricao": ""
+    },
+    {
+      "id": "24156237-5d0b-4be0-87e7-d970d9934414",
+      "categoriaId": "ae426628-d0e8-4c03-81d4-3aed5cd30a81",
+      "nome": "Orégano 30g",
+      "preco": 4.3,
+      "estoque": 80,
+      "ativo": true,
+      "imagemUrl": null,
+      "descricao": ""
+    },
+    {
+      "id": "92daacdb-4528-4469-a667-3f95fa9ef54b",
+      "categoriaId": "ae426628-d0e8-4c03-81d4-3aed5cd30a81",
+      "nome": "Páprica Doce 50g",
+      "preco": 5.9,
+      "estoque": 70,
+      "ativo": true,
+      "imagemUrl": null,
+      "descricao": ""
+    },
+    {
+      "id": "cd2cd3f1-9722-4320-b354-f44b1355d220",
+      "categoriaId": "e2a46b14-5999-4c74-8c87-6f3ca9ff7612",
+      "nome": "Damasco Seco 200g",
+      "preco": 12.9,
+      "estoque": 40,
+      "ativo": true,
+      "imagemUrl": null,
+      "descricao": ""
+    },
+    {
+      "id": "b0a2b050-c08e-493d-8306-98cf195e188b",
+      "categoriaId": "e2a46b14-5999-4c74-8c87-6f3ca9ff7612",
+      "nome": "Castanha do Pará 200g",
+      "preco": 18.5,
+      "estoque": 35,
+      "ativo": true,
+      "imagemUrl": null,
+      "descricao": ""
+    },
+    {
+      "id": "a02e009c-87ee-40ca-be55-6e95eec11055",
+      "categoriaId": "b65d26e1-3740-4c82-9b16-ec8982630311",
+      "nome": "Detergente Neutro 500ml",
+      "preco": 3.2,
+      "estoque": 150,
+      "ativo": true,
+      "imagemUrl": null,
+      "descricao": ""
+    },
+    {
+      "id": "cb0fc4d7-4bc4-4ceb-befa-7fc99bb3df90",
+      "categoriaId": "b65d26e1-3740-4c82-9b16-ec8982630311",
+      "nome": "Esponja Multiuso (pacote)",
+      "preco": 4,
+      "estoque": 100,
+      "ativo": true,
+      "imagemUrl": null,
+      "descricao": ""
+    },
+    {
+      "id": "dd1fa603-721d-4663-955f-680fd5d142e0",
+      "categoriaId": "5ad52341-9f5b-44b6-9205-f226c9317ed2",
+      "nome": "Sabonete Neutro 90g",
+      "preco": 2.8,
+      "estoque": 200,
+      "ativo": true,
+      "imagemUrl": null,
+      "descricao": ""
+    },
+    {
+      "id": "114a6b44-9fd4-494a-8908-9127c6f600be",
+      "categoriaId": "5ad52341-9f5b-44b6-9205-f226c9317ed2",
+      "nome": "Shampoo 350ml",
+      "preco": 15.9,
+      "estoque": 60,
+      "ativo": true,
+      "imagemUrl": null,
+      "descricao": ""
+    },
+    {
+      "id": "8bbbe371-8064-4ef3-af5a-4175eb4920f6",
+      "categoriaId": "c18ad079-8549-46b5-b4b6-31d0f7ddfe73",
+      "nome": "Macarrão Sem Glúten 500g",
+      "preco": 11.5,
+      "estoque": 45,
+      "ativo": true,
+      "imagemUrl": null,
+      "descricao": ""
+    },
+    {
+      "id": "062e6a86-f604-45c6-a60b-fb8361195b2e",
+      "categoriaId": "c18ad079-8549-46b5-b4b6-31d0f7ddfe73",
+      "nome": "Pão Sem Glúten 300g",
+      "preco": 14.9,
+      "estoque": 30,
+      "ativo": true,
+      "imagemUrl": null,
+      "descricao": ""
+    }
+  ],
+  "customers": [],
+  "admins": []
+}
