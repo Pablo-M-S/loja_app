@@ -1,4 +1,3 @@
-// services/api.js
 // Centraliza as chamadas para o backend. Troque a apiUrl em app.json
 // quando o backend estiver rodando na nuvem (Railway/Render/etc).
 
@@ -29,6 +28,8 @@ export const api = {
   getProduct: (id) => request(`/products/${id}`),
   registerCustomer: (dados) =>
     request('/customers', { method: 'POST', body: JSON.stringify(dados) }),
+  getCustomerByCpf: (cpf) =>
+    request(`/customers/by-cpf/${String(cpf).replace(/[^\d]/g, '')}`),
   updateCustomer: (id, dados) =>
     request(`/customers/${id}`, { method: 'PUT', body: JSON.stringify(dados) })
 };
