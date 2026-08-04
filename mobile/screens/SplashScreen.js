@@ -3,20 +3,20 @@ import { View, Image, StyleSheet } from 'react-native';
 
 export default function SplashScreen({ navigation }) {
   useEffect(() => {
-      const timer = setTimeout(() => {
-            navigation.replace('Home');
-                }, 2000);
-                    return () => clearTimeout(timer);
-                      }, []);
+    const timer = setTimeout(() => {
+      navigation.replace('Main');
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, []);
 
-                        return (
-                            <View style={styles.container}>
-                                  <Image source={require('../assets/logo.png')} style={styles.logo} resizeMode="contain" />
-                                      </View>
-                                        );
-                                        }
+  return (
+    <View style={styles.container}>
+      <Image source={require('../assets/logo.png')} style={styles.logo} resizeMode="contain" />
+    </View>
+  );
+}
 
-                                        const styles = StyleSheet.create({
-                                          container: { flex: 1, backgroundColor: '#ffffff', justifyContent: 'center', alignItems: 'center' },
-                                            logo: { width: 220, height: 220 }
-                                            });
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#ffffff', justifyContent: 'center', alignItems: 'center' },
+  logo: { width: 220, height: 220 }
+});
