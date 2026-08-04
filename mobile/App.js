@@ -11,6 +11,7 @@ import SplashScreen from './screens/SplashScreen';
 import RegisterScreen from './screens/RegisterScreen';
 import HomeScreen from './screens/HomeScreen'; // agora é a tela "Categorias" do menu
 import CategoryScreen from './screens/CategoryScreen';
+import CartScreen from './screens/CartScreen';
 import CustomDrawerContent from './components/CustomDrawerContent';
 import CartButton from './components/CartButton';
 
@@ -55,9 +56,14 @@ export default function App() {
               component={CategoryScreen}
               options={{ title: 'Produtos', headerStyle: { backgroundColor: VERDE }, headerTintColor: '#fff' }}
             />
+            <Stack.Screen
+              name="Cart"
+              component={CartScreen}
+              options={{ title: 'Carrinho', headerStyle: { backgroundColor: VERDE }, headerTintColor: '#fff' }}
+            />
           </Stack.Navigator>
         </NavigationContainer>
       </CartProvider>
     </GestureHandlerRootView>
   );
-  }
+}
