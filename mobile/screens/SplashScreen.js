@@ -1,10 +1,16 @@
 import React, { useEffect } from 'react';
 import { View, Image, StyleSheet } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function SplashScreen({ navigation }) {
   useEffect(() => {
-    const timer = setTimeout(() => {
-      navigation.replace('Main');
+    const timer = setTimeout(async () => {
+      const clienteSalvo = await AsyncStorage.getItem('cliente');
+      if (clienteSalvo) {
+        navigation.replace('Main');
+      } else {
+        navigation.replace('Register');
+      }
     }, 2000);
     return () => clearTimeout(timer);
   }, []);
