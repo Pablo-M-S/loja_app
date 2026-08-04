@@ -152,4 +152,4 @@ const styles = StyleSheet.create({
     alignItems: 'center', marginTop: 24,
   },
   textoBotaoPrincipal: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
-});                                                                                                                                                                                                                                                                                                                                                                                });
+});
