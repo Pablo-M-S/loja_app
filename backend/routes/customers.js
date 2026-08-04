@@ -57,6 +57,15 @@ router.post('/', (req, res) => {
   res.status(201).json(novoCliente);
 });
 
+// GET /api/customers/by-cpf/:cpf - busca cliente pelo CPF (usado como "login")
+// Precisa vir ANTES de /:id, senão o Express trata "by-cpf" como se fosse um id.
+router.get('/by-cpf/:cpf', (req, res) => {
+  const cpfLimpo = String(req.params.cpf).replace(/[^\d]/g, '');
+  const cliente = db.get('customers').find({ cpf: cpfLimpo }).value();
+  if (!cliente) return res.status(404).json({ erro: 'Cliente não encontrado' });
+  res.json(cliente);
+});
+
 // GET /api/customers/:id
 router.get('/:id', (req, res) => {
   const cliente = db.get('customers').find({ id: req.params.id }).value();
