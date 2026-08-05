@@ -30,7 +30,7 @@ export default function CustomDrawerContent(props) {
             label="Meus Dados"
             labelStyle={styles.label}
             icon={({ size }) => <Ionicons name="person-outline" size={size} color={VERDE} />}
-            onPress={() => props.navigation.navigate('Register')}
+            onPress={() => props.navigation.navigate('Profile')}
           />
         </View>
       </DrawerContentScrollView>
