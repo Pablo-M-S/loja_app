@@ -117,7 +117,7 @@ export default function HomeScreen({ navigation }) {
           showsHorizontalScrollIndicator={false}
           style={styles.banners}
           getItemLayout={(_, index) => ({
-            length: width * 0.9, offset: width * 0.9 * index, index,
+            length: width * 0.85 + 12, offset: (width * 0.85 + 12) * index, index,
           })}
           renderItem={({ item }) => (
             <View style={[styles.banner, { backgroundColor: item.cor }]}>
