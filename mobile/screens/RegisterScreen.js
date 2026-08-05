@@ -1,4 +1,4 @@
-                                                                                                    import React, { useState } from 'react';
+import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   ScrollView, Alert
@@ -9,6 +9,7 @@ import { api } from '../services/api';
 export default function RegisterScreen({ navigation }) {
   const [nome, setNome] = useState('');
   const [cpf, setCpf] = useState('');
+  const [senha, setSenha] = useState('');
   const [cep, setCep] = useState('');
   const [rua, setRua] = useState('');
   const [numero, setNumero] = useState('');
@@ -18,14 +19,18 @@ export default function RegisterScreen({ navigation }) {
   const [carregando, setCarregando] = useState(false);
 
   async function finalizarCadastro() {
-    if (!nome || !cpf) {
-      Alert.alert('Campos obrigatórios', 'Preencha nome e CPF para continuar.');
+    if (!nome || !cpf || !senha) {
+      Alert.alert('Campos obrigatórios', 'Preencha nome, CPF e senha para continuar.');
+      return;
+    }
+    if (senha.length < 6) {
+      Alert.alert('Senha muito curta', 'Use uma senha com pelo menos 6 caracteres.');
       return;
     }
     setCarregando(true);
     try {
       const cliente = await api.registerCustomer({
-        nome, cpf,
+        nome, cpf, senha,
         endereco: { cep, rua, numero, bairro, cidade, estado }
       });
       await AsyncStorage.setItem('cliente', JSON.stringify(cliente));
@@ -44,18 +49,18 @@ export default function RegisterScreen({ navigation }) {
     }
   }
 
-  async function entrarComCpf() {
-    if (!cpf) {
-      Alert.alert('Informe o CPF', 'Digite seu CPF no campo acima para entrar com um cadastro existente.');
+  async function entrarComCpfESenha() {
+    if (!cpf || !senha) {
+      Alert.alert('Informe CPF e senha', 'Preencha os dois campos para entrar com um cadastro existente.');
       return;
     }
     setCarregando(true);
     try {
-      const cliente = await api.getCustomerByCpf(cpf);
+      const cliente = await api.login(cpf, senha);
       await AsyncStorage.setItem('cliente', JSON.stringify(cliente));
       navigation.replace('Main');
     } catch (erro) {
-      Alert.alert('Não encontrado', 'Nenhum cadastro encontrado com esse CPF. Preencha os dados para se cadastrar.');
+      Alert.alert('Não foi possível entrar', erro.message);
     } finally {
       setCarregando(false);
     }
@@ -84,8 +89,11 @@ export default function RegisterScreen({ navigation }) {
       <Text style={styles.rotulo}>CPF</Text>
       <TextInput style={styles.input} value={cpf} onChangeText={setCpf} placeholder="000.000.000-00" keyboardType="numeric" />
 
-      <TouchableOpacity onPress={entrarComCpf} disabled={carregando}>
-        <Text style={styles.linkEntrar}>Já tenho cadastro — entrar com meu CPF</Text>
+      <Text style={styles.rotulo}>Senha</Text>
+      <TextInput style={styles.input} value={senha} onChangeText={setSenha} placeholder="Mínimo 6 caracteres" secureTextEntry />
+
+      <TouchableOpacity onPress={entrarComCpfESenha} disabled={carregando}>
+        <Text style={styles.linkEntrar}>Já tenho cadastro — entrar com CPF e senha</Text>
       </TouchableOpacity>
 
       <Text style={styles.subtitulo}>Endereço de entrega</Text>
