@@ -1,13 +1,71 @@
-import React from 'react';
-import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useEffect, useState, useCallback } from 'react';
+import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
 import { useCart } from '../context/CartContext';
+import { api } from '../services/api';
 
 const VERDE = '#1C682E';
 const VERDE_CLARO = '#EAF5EC';
+const LARANJA = '#B5651D';
+
+function enderecoValido(endereco) {
+  if (!endereco) return false;
+  return !!(endereco.rua && endereco.numero && endereco.cidade && endereco.estado);
+}
 
 export default function CartScreen({ navigation }) {
   const { items, updateQuantity, removeFromCart, totalPreco } = useCart();
+  const [temEndereco, setTemEndereco] = useState(false);
+  const [verificandoEndereco, setVerificandoEndereco] = useState(true);
+
+  // Roda toda vez que a tela do carrinho ganha foco, para refletir
+  // um endereço recém-salvo no Perfil sem precisar sair e voltar do zero.
+  useFocusEffect(
+    useCallback(() => {
+      let ativo = true;
+
+      async function verificarEndereco() {
+        setVerificandoEndereco(true);
+        try {
+          const salvo = await AsyncStorage.getItem('cliente');
+          if (!salvo) {
+            if (ativo) {
+              setTemEndereco(false);
+              setVerificandoEndereco(false);
+            }
+            return;
+          }
+          const clienteLocal = JSON.parse(salvo);
+          const cliente = await api.getCustomer(clienteLocal.id);
+          if (ativo) {
+            setTemEndereco(enderecoValido(cliente.endereco));
+          }
+        } catch (erro) {
+          if (ativo) setTemEndereco(false);
+        } finally {
+          if (ativo) setVerificandoEndereco(false);
+        }
+      }
+
+      verificarEndereco();
+      return () => { ativo = false; };
+    }, [])
+  );
+
+  function handleFinalizarCompra() {
+    if (!temEndereco) {
+      Alert.alert(
+        'Endereço necessário',
+        'Você precisa cadastrar um endereço de entrega antes de finalizar a compra.',
+        [{ text: 'Ir para Meus Dados', onPress: () => navigation.navigate('Profile') }]
+      );
+      return;
+    }
+    // Checkout em si ainda não implementado (pendência separada do handoff).
+    Alert.alert('Quase lá', 'O checkout completo ainda está sendo desenvolvido. Em breve!');
+  }
 
   function renderItem({ item }) {
     return (
@@ -80,8 +138,30 @@ export default function CartScreen({ navigation }) {
           <Text style={styles.valorTotal}>R$ {totalPreco.toFixed(2)}</Text>
         </View>
 
-        <TouchableOpacity style={styles.checkoutBtn} disabled>
-          <Text style={styles.checkoutText}>Finalizar compra (em breve)</Text>
+        {!verificandoEndereco && !temEndereco && (
+          <View style={styles.avisoEndereco}>
+            <Ionicons name="alert-circle-outline" size={16} color={LARANJA} />
+            <Text style={styles.avisoEnderecoTexto}>
+              Cadastre um endereço de entrega para continuar
+            </Text>
+          </View>
+        )}
+
+        <TouchableOpacity
+          style={[
+            styles.checkoutBtn,
+            !verificandoEndereco && !temEndereco && styles.checkoutBtnAviso,
+          ]}
+          onPress={handleFinalizarCompra}
+          disabled={verificandoEndereco}
+        >
+          <Text style={styles.checkoutText}>
+            {verificandoEndereco
+              ? 'Verificando endereço...'
+              : temEndereco
+              ? 'Finalizar compra'
+              : 'Adicionar endereço para continuar'}
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -119,10 +199,17 @@ const styles = StyleSheet.create({
   labelTotal: { fontSize: 16, fontWeight: 'bold', color: '#222' },
   valorTotal: { fontSize: 18, fontWeight: 'bold', color: VERDE },
 
+  avisoEndereco: {
+    flexDirection: 'row', alignItems: 'center', backgroundColor: '#FBEFE4',
+    borderRadius: 10, padding: 8, marginTop: 10, gap: 6,
+  },
+  avisoEnderecoTexto: { color: LARANJA, fontSize: 12, flex: 1 },
+
   checkoutBtn: {
-    backgroundColor: '#B5C9BB', paddingVertical: 16, borderRadius: 14,
+    backgroundColor: VERDE, paddingVertical: 16, borderRadius: 14,
     alignItems: 'center', marginTop: 14,
   },
+  checkoutBtnAviso: { backgroundColor: LARANJA },
   checkoutText: { color: '#fff', fontWeight: 'bold', fontSize: 15 },
 
   vazioContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: VERDE_CLARO, padding: 24 },
