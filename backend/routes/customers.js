@@ -128,5 +128,13 @@ router.put('/:id', (req, res) => {
   cliente.assign(atualizacoes).write();
   res.json(semSenha(cliente.value()));
 });
+// DELETE /api/customers/:id - remove um cliente (uso administrativo/testes)
+router.delete('/:id', (req, res) => {
+  const cliente = db.get('customers').find({ id: req.params.id }).value();
+  if (!cliente) return res.status(404).json({ erro: 'Cliente não encontrado' });
+
+  db.get('customers').remove({ id: req.params.id }).write();
+  res.json({ sucesso: true, mensagem: 'Cliente removido' });
+});
 
 module.exports = router;
