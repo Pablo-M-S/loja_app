@@ -7,9 +7,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { api } from '../services/api';
 
 export default function RegisterScreen({ navigation }) {
+  const [modo, setModo] = useState('cadastro'); // 'cadastro' | 'login'
+
   const [nome, setNome] = useState('');
-  const [cpf, setCpf] = useState('');
+  const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
+  const [cpf, setCpf] = useState('');
   const [cep, setCep] = useState('');
   const [rua, setRua] = useState('');
   const [numero, setNumero] = useState('');
@@ -19,8 +22,8 @@ export default function RegisterScreen({ navigation }) {
   const [carregando, setCarregando] = useState(false);
 
   async function finalizarCadastro() {
-    if (!nome || !cpf || !senha) {
-      Alert.alert('Campos obrigatórios', 'Preencha nome, CPF e senha para continuar.');
+    if (!nome || !email || !senha) {
+      Alert.alert('Campos obrigatórios', 'Preencha nome, e-mail e senha para continuar.');
       return;
     }
     if (senha.length < 6) {
@@ -29,17 +32,19 @@ export default function RegisterScreen({ navigation }) {
     }
     setCarregando(true);
     try {
+      const temEndereco = cep || rua || numero || bairro || cidade || estado;
       const cliente = await api.registerCustomer({
-        nome, cpf, senha,
-        endereco: { cep, rua, numero, bairro, cidade, estado }
+        nome, email, senha,
+        cpf: cpf || undefined,
+        endereco: temEndereco ? { cep, rua, numero, bairro, cidade, estado } : undefined
       });
       await AsyncStorage.setItem('cliente', JSON.stringify(cliente));
       navigation.replace('Main');
     } catch (erro) {
-      if (erro.message.includes('Já existe')) {
+      if (erro.message.includes('e-mail')) {
         Alert.alert(
-          'CPF já cadastrado',
-          'Esse CPF já tem cadastro. Use a opção "Já tenho cadastro" abaixo para entrar.'
+          'E-mail já cadastrado',
+          'Esse e-mail já tem cadastro. Use a opção "Já tenho conta" abaixo para entrar.'
         );
       } else {
         Alert.alert('Erro no cadastro', erro.message);
@@ -49,14 +54,14 @@ export default function RegisterScreen({ navigation }) {
     }
   }
 
-  async function entrarComCpfESenha() {
-    if (!cpf || !senha) {
-      Alert.alert('Informe CPF e senha', 'Preencha os dois campos para entrar com um cadastro existente.');
+  async function fazerLogin() {
+    if (!email || !senha) {
+      Alert.alert('Informe e-mail e senha', 'Preencha os dois campos para entrar.');
       return;
     }
     setCarregando(true);
     try {
-      const cliente = await api.login(cpf, senha);
+      const cliente = await api.login(email, senha);
       await AsyncStorage.setItem('cliente', JSON.stringify(cliente));
       navigation.replace('Main');
     } catch (erro) {
@@ -75,7 +80,7 @@ export default function RegisterScreen({ navigation }) {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.titulo}>Criar minha conta</Text>
+      <Text style={styles.titulo}>{modo === 'cadastro' ? 'Criar minha conta' : 'Entrar na minha conta'}</Text>
 
       <TouchableOpacity style={styles.botaoGoogle} onPress={loginComGoogle}>
         <Text style={styles.textoBotaoGoogle}>Continuar com Google</Text>
@@ -83,52 +88,76 @@ export default function RegisterScreen({ navigation }) {
 
       <Text style={styles.divisor}>ou preencha manualmente</Text>
 
-      <Text style={styles.rotulo}>Nome completo</Text>
-      <TextInput style={styles.input} value={nome} onChangeText={setNome} placeholder="Seu nome" />
+      {modo === 'cadastro' && (
+        <>
+          <Text style={styles.rotulo}>Nome completo</Text>
+          <TextInput style={styles.input} value={nome} onChangeText={setNome} placeholder="Seu nome" />
+        </>
+      )}
 
-      <Text style={styles.rotulo}>CPF</Text>
-      <TextInput style={styles.input} value={cpf} onChangeText={setCpf} placeholder="000.000.000-00" keyboardType="numeric" />
+      <Text style={styles.rotulo}>E-mail</Text>
+      <TextInput
+        style={styles.input} value={email} onChangeText={setEmail}
+        placeholder="seuemail@exemplo.com" keyboardType="email-address" autoCapitalize="none"
+      />
 
       <Text style={styles.rotulo}>Senha</Text>
       <TextInput style={styles.input} value={senha} onChangeText={setSenha} placeholder="Mínimo 6 caracteres" secureTextEntry />
 
-      <TouchableOpacity onPress={entrarComCpfESenha} disabled={carregando}>
-        <Text style={styles.linkEntrar}>Já tenho cadastro — entrar com CPF e senha</Text>
-      </TouchableOpacity>
+      {modo === 'cadastro' ? (
+        <TouchableOpacity onPress={() => setModo('login')}>
+          <Text style={styles.linkEntrar}>Já tenho conta — entrar</Text>
+        </TouchableOpacity>
+      ) : (
+        <TouchableOpacity onPress={() => setModo('cadastro')}>
+          <Text style={styles.linkEntrar}>Não tenho conta — cadastrar</Text>
+        </TouchableOpacity>
+      )}
 
-      <Text style={styles.subtitulo}>Endereço de entrega</Text>
+      {modo === 'cadastro' && (
+        <>
+          <Text style={styles.subtitulo}>CPF (opcional, para nota fiscal)</Text>
+          <TextInput style={styles.input} value={cpf} onChangeText={setCpf} placeholder="000.000.000-00" keyboardType="numeric" />
 
-      <Text style={styles.rotulo}>CEP</Text>
-      <TextInput style={styles.input} value={cep} onChangeText={setCep} placeholder="00000-000" keyboardType="numeric" />
+          <Text style={styles.subtitulo}>Endereço de entrega</Text>
 
-      <Text style={styles.rotulo}>Rua</Text>
-      <TextInput style={styles.input} value={rua} onChangeText={setRua} placeholder="Nome da rua" />
+          <Text style={styles.rotulo}>CEP</Text>
+          <TextInput style={styles.input} value={cep} onChangeText={setCep} placeholder="00000-000" keyboardType="numeric" />
 
-      <View style={styles.linha}>
-        <View style={{ flex: 1, marginRight: 8 }}>
-          <Text style={styles.rotulo}>Número</Text>
-          <TextInput style={styles.input} value={numero} onChangeText={setNumero} keyboardType="numeric" />
-        </View>
-        <View style={{ flex: 2 }}>
-          <Text style={styles.rotulo}>Bairro</Text>
-          <TextInput style={styles.input} value={bairro} onChangeText={setBairro} />
-        </View>
-      </View>
+          <Text style={styles.rotulo}>Rua</Text>
+          <TextInput style={styles.input} value={rua} onChangeText={setRua} placeholder="Nome da rua" />
 
-      <View style={styles.linha}>
-        <View style={{ flex: 2, marginRight: 8 }}>
-          <Text style={styles.rotulo}>Cidade</Text>
-          <TextInput style={styles.input} value={cidade} onChangeText={setCidade} />
-        </View>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.rotulo}>UF</Text>
-          <TextInput style={styles.input} value={estado} onChangeText={setEstado} maxLength={2} autoCapitalize="characters" />
-        </View>
-      </View>
+          <View style={styles.linha}>
+            <View style={{ flex: 1, marginRight: 8 }}>
+              <Text style={styles.rotulo}>Número</Text>
+              <TextInput style={styles.input} value={numero} onChangeText={setNumero} keyboardType="numeric" />
+            </View>
+            <View style={{ flex: 2 }}>
+              <Text style={styles.rotulo}>Bairro</Text>
+              <TextInput style={styles.input} value={bairro} onChangeText={setBairro} />
+            </View>
+          </View>
 
-      <TouchableOpacity style={styles.botaoPrincipal} onPress={finalizarCadastro} disabled={carregando}>
+          <View style={styles.linha}>
+            <View style={{ flex: 2, marginRight: 8 }}>
+              <Text style={styles.rotulo}>Cidade</Text>
+              <TextInput style={styles.input} value={cidade} onChangeText={setCidade} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.rotulo}>UF</Text>
+              <TextInput style={styles.input} value={estado} onChangeText={setEstado} maxLength={2} autoCapitalize="characters" />
+            </View>
+          </View>
+        </>
+      )}
+
+      <TouchableOpacity
+        style={styles.botaoPrincipal}
+        onPress={modo === 'cadastro' ? finalizarCadastro : fazerLogin}
+        disabled={carregando}
+      >
         <Text style={styles.textoBotaoPrincipal}>
-          {carregando ? 'Salvando...' : 'Finalizar cadastro'}
+          {carregando ? 'Aguarde...' : modo === 'cadastro' ? 'Finalizar cadastro' : 'Entrar'}
         </Text>
       </TouchableOpacity>
     </ScrollView>
