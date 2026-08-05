@@ -22,10 +22,13 @@ export default function ProfileScreen({ navigation }) {
   const [cep, setCep] = useState('');
   const [rua, setRua] = useState('');
   const [numero, setNumero] = useState('');
+  const [complemento, setComplemento] = useState('');
+  const [tipoMoradia, setTipoMoradia] = useState('casa');
   const [bairro, setBairro] = useState('');
   const [cidade, setCidade] = useState('');
   const [estado, setEstado] = useState('');
   const [zonaEntrega, setZonaEntrega] = useState(null);
+  const [buscandoCep, setBuscandoCep] = useState(false);
   const [carregando, setCarregando] = useState(true);
   const [salvando, setSalvando] = useState(false);
 
@@ -42,7 +45,6 @@ export default function ProfileScreen({ navigation }) {
         return;
       }
       const clienteLocal = JSON.parse(salvo);
-      // Busca dados atualizados no backend, caso tenham mudado desde o último login.
       const cliente = await api.getCustomer(clienteLocal.id);
       preencherCampos(cliente);
     } catch (erro) {
@@ -60,10 +62,36 @@ export default function ProfileScreen({ navigation }) {
     setCep(cliente.endereco?.cep || '');
     setRua(cliente.endereco?.rua || '');
     setNumero(cliente.endereco?.numero || '');
+    setComplemento(cliente.endereco?.complemento || '');
+    setTipoMoradia(cliente.endereco?.tipoMoradia || 'casa');
     setBairro(cliente.endereco?.bairro || '');
     setCidade(cliente.endereco?.cidade || '');
     setEstado(cliente.endereco?.estado || '');
     setZonaEntrega(cliente.zonaEntrega || null);
+  }
+
+  async function buscarCep(valor) {
+    const cepLimpo = valor.replace(/[^\d]/g, '');
+    setCep(valor);
+    if (cepLimpo.length !== 8) return;
+
+    setBuscandoCep(true);
+    try {
+      const res = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`);
+      const dados = await res.json();
+      if (dados.erro) {
+        Alert.alert('CEP não encontrado', 'Confere se o CEP está certo, ou preenche o endereço manualmente.');
+        return;
+      }
+      setRua(dados.logradouro || '');
+      setBairro(dados.bairro || '');
+      setCidade(dados.localidade || '');
+      setEstado(dados.uf || '');
+    } catch (erro) {
+      Alert.alert('Erro ao buscar CEP', 'Não consegui buscar o endereço agora. Preenche manualmente.');
+    } finally {
+      setBuscandoCep(false);
+    }
   }
 
   async function salvar() {
@@ -77,7 +105,9 @@ export default function ProfileScreen({ navigation }) {
       const clienteAtualizado = await api.updateCustomer(clienteId, {
         nome,
         cpf: cpf || null,
-        endereco: temEndereco ? { cep, rua, numero, bairro, cidade, estado } : null
+        endereco: temEndereco
+          ? { cep, rua, numero, complemento, tipoMoradia, bairro, cidade, estado }
+          : null
       });
       await AsyncStorage.setItem('cliente', JSON.stringify(clienteAtualizado));
       setZonaEntrega(clienteAtualizado.zonaEntrega || null);
@@ -117,10 +147,16 @@ export default function ProfileScreen({ navigation }) {
       )}
 
       <Text style={styles.rotulo}>CEP</Text>
-      <TextInput style={styles.input} value={cep} onChangeText={setCep} placeholder="00000-000" keyboardType="numeric" />
+      <View style={styles.cepRow}>
+        <TextInput
+          style={[styles.input, { flex: 1 }]} value={cep} onChangeText={buscarCep}
+          placeholder="00000-000" keyboardType="numeric" maxLength={9}
+        />
+        {buscandoCep && <ActivityIndicator size="small" color={VERDE} style={{ marginLeft: 10 }} />}
+      </View>
 
       <Text style={styles.rotulo}>Rua</Text>
-      <TextInput style={styles.input} value={rua} onChangeText={setRua} placeholder="Nome da rua" />
+      <TextInput style={styles.input} value={rua} onChangeText={setRua} placeholder="Preenchido pelo CEP" />
 
       <View style={styles.linha}>
         <View style={{ flex: 1, marginRight: 8 }}>
@@ -129,14 +165,37 @@ export default function ProfileScreen({ navigation }) {
         </View>
         <View style={{ flex: 2 }}>
           <Text style={styles.rotulo}>Bairro</Text>
-          <TextInput style={styles.input} value={bairro} onChangeText={setBairro} />
+          <TextInput style={styles.input} value={bairro} onChangeText={setBairro} placeholder="Preenchido pelo CEP" />
         </View>
       </View>
+
+      <Text style={styles.rotulo}>Tipo de moradia</Text>
+      <View style={styles.tipoRow}>
+        <TouchableOpacity
+          style={[styles.tipoBtn, tipoMoradia === 'casa' && styles.tipoBtnAtivo]}
+          onPress={() => setTipoMoradia('casa')}
+        >
+          <Text style={[styles.tipoBtnTexto, tipoMoradia === 'casa' && styles.tipoBtnTextoAtivo]}>Casa</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tipoBtn, tipoMoradia === 'apartamento' && styles.tipoBtnAtivo]}
+          onPress={() => setTipoMoradia('apartamento')}
+        >
+          <Text style={[styles.tipoBtnTexto, tipoMoradia === 'apartamento' && styles.tipoBtnTextoAtivo]}>Apartamento</Text>
+        </TouchableOpacity>
+      </View>
+
+      {tipoMoradia === 'apartamento' && (
+        <>
+          <Text style={styles.rotulo}>Complemento (bloco, apto, etc.)</Text>
+          <TextInput style={styles.input} value={complemento} onChangeText={setComplemento} placeholder="Ex: Bloco 2, Apto 34" />
+        </>
+      )}
 
       <View style={styles.linha}>
         <View style={{ flex: 2, marginRight: 8 }}>
           <Text style={styles.rotulo}>Cidade</Text>
-          <TextInput style={styles.input} value={cidade} onChangeText={setCidade} />
+          <TextInput style={styles.input} value={cidade} onChangeText={setCidade} placeholder="Preenchido pelo CEP" />
         </View>
         <View style={{ flex: 1 }}>
           <Text style={styles.rotulo}>UF</Text>
@@ -160,10 +219,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12, paddingVertical: 10, fontSize: 15, backgroundColor: '#fafafa',
   },
   inputDesabilitado: { backgroundColor: '#eee', color: '#888' },
+  cepRow: { flexDirection: 'row', alignItems: 'center' },
   subtitulo: { fontSize: 16, fontWeight: 'bold', color: '#222', marginTop: 24, marginBottom: 8 },
   zonaBox: { backgroundColor: VERDE_CLARO, borderRadius: 10, padding: 10, marginBottom: 12 },
   zonaTexto: { color: VERDE, fontWeight: '600', fontSize: 13 },
   linha: { flexDirection: 'row' },
+  tipoRow: { flexDirection: 'row', marginTop: 4 },
+  tipoBtn: {
+    flex: 1, borderWidth: 1, borderColor: VERDE, borderRadius: 10,
+    paddingVertical: 10, alignItems: 'center', marginRight: 8,
+  },
+  tipoBtnAtivo: { backgroundColor: VERDE },
+  tipoBtnTexto: { color: VERDE, fontWeight: '600' },
+  tipoBtnTextoAtivo: { color: '#fff' },
   botaoPrincipal: {
     backgroundColor: VERDE, borderRadius: 12, paddingVertical: 16,
     alignItems: 'center', marginTop: 24, marginBottom: 24,
