@@ -28,10 +28,9 @@ export const api = {
   getProduct: (id) => request(`/products/${id}`),
   registerCustomer: (dados) =>
     request('/customers', { method: 'POST', body: JSON.stringify(dados) }),
-  login: (cpf, senha) =>
-    request('/customers/login', { method: 'POST', body: JSON.stringify({ cpf, senha }) }),
-  getCustomerByCpf: (cpf) =>
-    request(`/customers/by-cpf/${String(cpf).replace(/[^\d]/g, '')}`),
+  login: (email, senha) =>
+    request('/customers/login', { method: 'POST', body: JSON.stringify({ email, senha }) }),
+  getCustomer: (id) => request(`/customers/${id}`),
   updateCustomer: (id, dados) =>
     request(`/customers/${id}`, { method: 'PUT', body: JSON.stringify(dados) })
 };
