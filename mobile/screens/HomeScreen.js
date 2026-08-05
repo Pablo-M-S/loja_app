@@ -81,7 +81,7 @@ export default function HomeScreen({ navigation }) {
   }
 
   function irParaCategoria(categoria) {
-    navigation.navigate('Category', { slug: categoria.slug, nome: categoria.nome });
+    navigation.navigate('Category', { categoria });
   }
 
   if (carregando) {
