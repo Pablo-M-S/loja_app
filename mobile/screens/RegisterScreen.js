@@ -1,10 +1,15 @@
- import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   ScrollView, Alert, ActivityIndicator
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import { api } from '../services/api';
+
+// Client ID Web do Google Cloud (loja-app-504701) — não é segredo, é seguro
+// deixar esse valor direto no código (é o mesmo que já é público no app).
+const GOOGLE_WEB_CLIENT_ID = '1071673554790-6lftfdgh8u24ubf36aipvd1rf4b4vs4q.apps.googleusercontent.com';
 
 export default function RegisterScreen({ navigation }) {
   const [modo, setModo] = useState('cadastro'); // 'cadastro' | 'login'
@@ -23,6 +28,14 @@ export default function RegisterScreen({ navigation }) {
   const [estado, setEstado] = useState('');
   const [buscandoCep, setBuscandoCep] = useState(false);
   const [carregando, setCarregando] = useState(false);
+  const [carregandoGoogle, setCarregandoGoogle] = useState(false);
+
+  useEffect(() => {
+    GoogleSignin.configure({
+      webClientId: GOOGLE_WEB_CLIENT_ID,
+      offlineAccess: false
+    });
+  }, []);
 
   async function buscarCep(valor) {
     const cepLimpo = valor.replace(/[^\d]/g, '');
@@ -100,19 +113,50 @@ export default function RegisterScreen({ navigation }) {
     }
   }
 
-  function loginComGoogle() {
-    Alert.alert(
-      'Login com Google',
-      'Essa opção será ativada quando configurarmos as credenciais OAuth do Google Cloud Console.'
-    );
+  async function loginComGoogle() {
+    setCarregandoGoogle(true);
+    try {
+      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+      const resposta = await GoogleSignin.signIn();
+
+      // Dependendo da versão da lib, o idToken vem em resposta.data.idToken
+      // ou direto em resposta.idToken — cobrindo os dois formatos.
+      const idToken = resposta?.data?.idToken || resposta?.idToken;
+      if (!idToken) {
+        throw new Error('Não recebi o token do Google. Tenta novamente.');
+      }
+
+      const cliente = await api.loginWithGoogle(idToken);
+      await AsyncStorage.setItem('cliente', JSON.stringify(cliente));
+      navigation.replace('Main');
+    } catch (erro) {
+      if (erro.code === statusCodes.SIGN_IN_CANCELLED) {
+        // Usuário cancelou o login — não precisa mostrar erro.
+        return;
+      }
+      if (erro.code === statusCodes.IN_PROGRESS) {
+        return;
+      }
+      if (erro.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+        Alert.alert('Google Play Services', 'Seu celular precisa dos Google Play Services atualizados para usar o login com Google.');
+        return;
+      }
+      Alert.alert('Não foi possível entrar com Google', erro.message || 'Tenta novamente em instantes.');
+    } finally {
+      setCarregandoGoogle(false);
+    }
   }
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.titulo}>{modo === 'cadastro' ? 'Criar minha conta' : 'Entrar na minha conta'}</Text>
 
-      <TouchableOpacity style={styles.botaoGoogle} onPress={loginComGoogle}>
-        <Text style={styles.textoBotaoGoogle}>Continuar com Google</Text>
+      <TouchableOpacity style={styles.botaoGoogle} onPress={loginComGoogle} disabled={carregandoGoogle}>
+        {carregandoGoogle ? (
+          <ActivityIndicator size="small" color="#1C682E" />
+        ) : (
+          <Text style={styles.textoBotaoGoogle}>Continuar com Google</Text>
+        )}
       </TouchableOpacity>
 
       <Text style={styles.divisor}>ou preencha manualmente</Text>
@@ -256,4 +300,4 @@ const styles = StyleSheet.create({
     alignItems: 'center', marginTop: 24,
   },
   textoBotaoPrincipal: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
-});         
+});
