@@ -1,6 +1,3 @@
-// Centraliza as chamadas para o backend. Troque a apiUrl em app.json
-// quando o backend estiver rodando na nuvem (Railway/Render/etc).
-
 import Constants from 'expo-constants';
 
 const API_URL = Constants.expoConfig?.extra?.apiUrl || 'http://localhost:3000/api';
