@@ -1,10 +1,10 @@
-        import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View, Text, FlatList, ScrollView, Image, StyleSheet,
   ActivityIndicator, Dimensions, TouchableOpacity
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { api } from '../services/api';
+import { api, getMediaUrl } from '../services/api';
 import { useCart } from '../context/CartContext';
 import ProductCardShelf from '../components/ProductCardShelf';
 import QuantityModal from '../components/QuantityModal';
@@ -13,14 +13,6 @@ const VERDE = '#1C682E';
 const VERDE_CLARO = '#EAF5EC';
 const { width } = Dimensions.get('window');
 
-const BANNERS = [
-  { id: '1', cor: VERDE, titulo: 'Ofertas da semana' },
-  { id: '2', cor: '#2E8B4E', titulo: 'Novidades em Grãos' },
-  { id: '3', cor: '#155023', titulo: 'Frete grátis acima de R$100' },
-];
-
-const BANNER_FIXO = { cor: '#0F3D1A', titulo: 'Conheça nossos produtos frescos' };
-
 // Ícone padrão para categorias sem símbolo definido ainda.
 // Depois trocamos por um mapeamento categoria -> ícone específico.
 const ICONE_PADRAO = 'pricetag-outline';
@@ -28,6 +20,7 @@ const ICONE_PADRAO = 'pricetag-outline';
 export default function HomeScreen({ navigation }) {
   const [categorias, setCategorias] = useState([]);
   const [prateleiras, setPrateleiras] = useState([]); // [{ categoria, produtos }]
+  const [banners, setBanners] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState(null);
   const [produtoSelecionado, setProdutoSelecionado] = useState(null);
@@ -42,19 +35,24 @@ export default function HomeScreen({ navigation }) {
 
   // Carrossel de banners rodando sozinho a cada 8 segundos
   useEffect(() => {
+    if (banners.length < 2) return; // não faz sentido rodar com 0 ou 1 banner
     const intervalo = setInterval(() => {
-      bannerIndex.current = (bannerIndex.current + 1) % BANNERS.length;
+      bannerIndex.current = (bannerIndex.current + 1) % banners.length;
       bannerListRef.current?.scrollToIndex({ index: bannerIndex.current, animated: true });
     }, 8000);
     return () => clearInterval(intervalo);
-  }, []);
+  }, [banners]);
 
   async function carregarTudo() {
     setCarregando(true);
     setErro(null);
     try {
-      const cats = await api.getCategories();
+      const [cats, listaBanners] = await Promise.all([
+        api.getCategories(),
+        api.getBanners().catch(() => []) // se der erro nos banners, não trava a Home inteira
+      ]);
       setCategorias(cats);
+      setBanners(listaBanners);
 
       // Busca os produtos de cada categoria em paralelo, pra montar as prateleiras
       const resultados = await Promise.all(
@@ -107,24 +105,28 @@ export default function HomeScreen({ navigation }) {
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
 
-        {/* 1. Banners rotativos */}
-        <FlatList
-          ref={bannerListRef}
-          data={BANNERS}
-          keyExtractor={(item) => item.id}
-          horizontal
-          pagingEnabled
-          showsHorizontalScrollIndicator={false}
-          style={styles.banners}
-          getItemLayout={(_, index) => ({
-            length: width * 0.85 + 12, offset: (width * 0.85 + 12) * index, index,
-          })}
-          renderItem={({ item }) => (
-            <View style={[styles.banner, { backgroundColor: item.cor }]}>
-              <Text style={styles.bannerTexto}>{item.titulo}</Text>
-            </View>
-          )}
-        />
+        {/* 1. Banners rotativos (vindos do painel admin) */}
+        {banners.length > 0 && (
+          <FlatList
+            ref={bannerListRef}
+            data={banners}
+            keyExtractor={(item) => item.id}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            style={styles.banners}
+            getItemLayout={(_, index) => ({
+              length: width * 0.85 + 12, offset: (width * 0.85 + 12) * index, index,
+            })}
+            renderItem={({ item }) => (
+              <Image
+                source={{ uri: getMediaUrl(item.imagemUrl) }}
+                style={styles.banner}
+                resizeMode="cover"
+              />
+            )}
+          />
+        )}
 
         {/* 2. Categorias em lista horizontal */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoriasRow}>
@@ -139,12 +141,7 @@ export default function HomeScreen({ navigation }) {
           ))}
         </ScrollView>
 
-        {/* 3. Banner fixo */}
-        <View style={[styles.bannerFixo, { backgroundColor: BANNER_FIXO.cor }]}>
-          <Text style={styles.bannerTexto}>{BANNER_FIXO.titulo}</Text>
-        </View>
-
-        {/* 4. Prateleiras de produtos por categoria */}
+        {/* 3. Prateleiras de produtos por categoria */}
         {prateleiras.map(({ categoria, produtos }) => (
           <View key={categoria.id} style={styles.prateleira}>
             <Text style={styles.secaoTitulo}>{categoria.nome}</Text>
@@ -160,7 +157,7 @@ export default function HomeScreen({ navigation }) {
           </View>
         ))}
 
-        {/* 5. Grade final com todas as categorias, 3 por linha */}
+        {/* 4. Grade final com todas as categorias, 3 por linha */}
         <Text style={styles.secaoTitulo}>Todas as categorias</Text>
         <View style={styles.categoriaGrid}>
           {categorias.map((cat) => (
@@ -195,9 +192,8 @@ const styles = StyleSheet.create({
   banners: { marginTop: 12, marginBottom: 16, paddingLeft: 12 },
   banner: {
     width: width * 0.85, height: 110, borderRadius: 16, marginRight: 12,
-    justifyContent: 'flex-end', padding: 14,
+    backgroundColor: VERDE_CLARO,
   },
-  bannerTexto: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
 
   categoriasRow: { marginBottom: 16, paddingLeft: 12 },
   categoriaChip: {
@@ -205,11 +201,6 @@ const styles = StyleSheet.create({
     marginRight: 10, borderWidth: 1, borderColor: VERDE,
   },
   categoriaChipTexto: { color: VERDE, fontWeight: '600', fontSize: 13 },
-
-  bannerFixo: {
-    marginHorizontal: 12, height: 90, borderRadius: 16, marginBottom: 20,
-    justifyContent: 'center', padding: 14,
-  },
 
   prateleira: { marginBottom: 20, paddingLeft: 12 },
   secaoTitulo: { fontSize: 17, fontWeight: 'bold', color: '#222', marginBottom: 10, paddingLeft: 12 },
