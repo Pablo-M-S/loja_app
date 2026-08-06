@@ -1,6 +1,3 @@
-// Centraliza as chamadas para o backend. Troque a apiUrl em app.json
-// quando o backend estiver rodando na nuvem (Railway/Render/etc).
-
 import Constants from 'expo-constants';
 
 const API_URL = Constants.expoConfig?.extra?.apiUrl || 'http://localhost:3000/api';
@@ -30,6 +27,8 @@ export const api = {
     request('/customers', { method: 'POST', body: JSON.stringify(dados) }),
   login: (email, senha) =>
     request('/customers/login', { method: 'POST', body: JSON.stringify({ email, senha }) }),
+  loginWithGoogle: (idToken) =>
+    request('/customers/google-login', { method: 'POST', body: JSON.stringify({ idToken }) }),
   getCustomer: (id) => request(`/customers/${id}`),
   updateCustomer: (id, dados) =>
     request(`/customers/${id}`, { method: 'PUT', body: JSON.stringify(dados) })
