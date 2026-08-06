@@ -17,7 +17,9 @@
   table { width: 100%; border-collapse: collapse; margin-top: 12px; }
   th, td { text-align: left; padding: 8px; border-bottom: 1px solid #eee; font-size: 0.9rem; }
   .linha-acoes button { margin: 2px; padding: 4px 8px; font-size: 0.8rem; }
-  #status { font-size: 0.85rem; color: #16a34a; margin-top: 8px; }
+  #status, #statusBanner { font-size: 0.85rem; color: #16a34a; margin-top: 8px; }
+  .preview { max-width: 120px; max-height: 120px; margin-top: 8px; border-radius: 4px; display: block; }
+  img.thumb { width: 50px; height: 50px; object-fit: cover; border-radius: 4px; }
 </style>
 </head>
 <body>
@@ -37,6 +39,10 @@
   <input type="number" id="estoque" placeholder="0">
   <label>Descrição</label>
   <textarea id="descricao" rows="2"></textarea>
+  <label>Imagem do produto</label>
+  <input type="file" id="imagemProduto" accept="image/png, image/jpeg, image/webp">
+  <img id="previewProduto" class="preview" style="display:none;">
+  <input type="hidden" id="imagemUrl">
   <button onclick="salvarProduto()">Salvar produto</button>
   <button class="secundario" onclick="limparFormulario()">Limpar</button>
   <div id="status"></div>
@@ -46,19 +52,57 @@
   <h2 style="font-size:1.1rem;">Produtos cadastrados</h2>
   <table>
     <thead>
-      <tr><th>Nome</th><th>Categoria</th><th>Preço</th><th>Estoque</th><th>Ativo</th><th>Ações</th></tr>
+      <tr><th>Imagem</th><th>Nome</th><th>Categoria</th><th>Preço</th><th>Estoque</th><th>Ativo</th><th>Ações</th></tr>
     </thead>
     <tbody id="tabelaProdutos"></tbody>
   </table>
 </div>
 
+<div class="card">
+  <h2 style="font-size:1.1rem;">Adicionar banner</h2>
+  <input type="hidden" id="bannerId">
+  <label>Imagem do banner</label>
+  <input type="file" id="imagemBanner" accept="image/png, image/jpeg, image/webp">
+  <img id="previewBanner" class="preview" style="display:none;">
+  <input type="hidden" id="bannerImagemUrl">
+  <label>Link ao tocar (opcional — ex: id de uma categoria, ou deixe em branco)</label>
+  <input type="text" id="bannerLink" placeholder="Opcional">
+  <label>Ordem de exibição</label>
+  <input type="number" id="bannerOrdem" placeholder="0" value="0">
+  <button onclick="salvarBanner()">Salvar banner</button>
+  <button class="secundario" onclick="limparFormularioBanner()">Limpar</button>
+  <div id="statusBanner"></div>
+</div>
+
+<div class="card">
+  <h2 style="font-size:1.1rem;">Banners cadastrados</h2>
+  <table>
+    <thead>
+      <tr><th>Imagem</th><th>Ordem</th><th>Ativo</th><th>Ações</th></tr>
+    </thead>
+    <tbody id="tabelaBanners"></tbody>
+  </table>
+</div>
+
 <script>
-// Ajuste esse valor para o endereço do seu backend quando ele estiver
-// rodando em outro host (ex: quando publicar na nuvem).
 const API_BASE = window.location.origin + '/api';
 
 let categorias = [];
 
+// ---------- Upload genérico de imagem ----------
+async function enviarImagem(arquivo) {
+  const formData = new FormData();
+  formData.append('imagem', arquivo);
+  const res = await fetch(`${API_BASE}/upload`, { method: 'POST', body: formData });
+  if (!res.ok) {
+    const erro = await res.json();
+    throw new Error(erro.erro || 'Falha no upload da imagem');
+  }
+  const data = await res.json();
+  return data.url;
+}
+
+// ---------- Produtos ----------
 async function carregarCategorias() {
   const res = await fetch(`${API_BASE}/categories`);
   categorias = await res.json();
@@ -77,6 +121,7 @@ async function carregarProdutos() {
   const tbody = document.getElementById('tabelaProdutos');
   tbody.innerHTML = produtos.map(p => `
     <tr>
+      <td>${p.imagemUrl ? `<img class="thumb" src="${p.imagemUrl}">` : '—'}</td>
       <td>${p.nome}</td>
       <td>${nomeCategoria(p.categoriaId)}</td>
       <td>R$ ${Number(p.preco).toFixed(2)}</td>
@@ -90,6 +135,26 @@ async function carregarProdutos() {
   `).join('');
 }
 
+document.getElementById('imagemProduto').addEventListener('change', async (e) => {
+  const arquivo = e.target.files[0];
+  if (!arquivo) return;
+  const status = document.getElementById('status');
+  try {
+    status.style.color = '#555';
+    status.textContent = 'Enviando imagem...';
+    const url = await enviarImagem(arquivo);
+    document.getElementById('imagemUrl').value = url;
+    const preview = document.getElementById('previewProduto');
+    preview.src = url;
+    preview.style.display = 'block';
+    status.style.color = '#16a34a';
+    status.textContent = 'Imagem enviada. Agora clique em "Salvar produto".';
+  } catch (err) {
+    status.style.color = '#dc2626';
+    status.textContent = 'Erro: ' + err.message;
+  }
+});
+
 function editarProduto(p) {
   document.getElementById('produtoId').value = p.id;
   document.getElementById('nome').value = p.nome;
@@ -97,6 +162,14 @@ function editarProduto(p) {
   document.getElementById('preco').value = p.preco;
   document.getElementById('estoque').value = p.estoque;
   document.getElementById('descricao').value = p.descricao || '';
+  document.getElementById('imagemUrl').value = p.imagemUrl || '';
+  const preview = document.getElementById('previewProduto');
+  if (p.imagemUrl) {
+    preview.src = p.imagemUrl;
+    preview.style.display = 'block';
+  } else {
+    preview.style.display = 'none';
+  }
   window.scrollTo(0, 0);
 }
 
@@ -106,6 +179,9 @@ function limparFormulario() {
   document.getElementById('preco').value = '';
   document.getElementById('estoque').value = '';
   document.getElementById('descricao').value = '';
+  document.getElementById('imagemUrl').value = '';
+  document.getElementById('imagemProduto').value = '';
+  document.getElementById('previewProduto').style.display = 'none';
 }
 
 async function salvarProduto() {
@@ -115,7 +191,8 @@ async function salvarProduto() {
     categoriaId: document.getElementById('categoriaId').value,
     preco: parseFloat(document.getElementById('preco').value),
     estoque: parseInt(document.getElementById('estoque').value) || 0,
-    descricao: document.getElementById('descricao').value
+    descricao: document.getElementById('descricao').value,
+    imagemUrl: document.getElementById('imagemUrl').value || null
   };
 
   const status = document.getElementById('status');
@@ -159,7 +236,127 @@ async function excluirProduto(id) {
   carregarProdutos();
 }
 
+// ---------- Banners ----------
+async function carregarBanners() {
+  const res = await fetch(`${API_BASE}/banners`);
+  const banners = await res.json();
+  const tbody = document.getElementById('tabelaBanners');
+  tbody.innerHTML = banners.map(b => `
+    <tr>
+      <td>${b.imagemUrl ? `<img class="thumb" src="${b.imagemUrl}">` : '—'}</td>
+      <td>${b.ordem}</td>
+      <td>${b.ativo ? 'Sim' : 'Não'}</td>
+      <td class="linha-acoes">
+        <button onclick='editarBanner(${JSON.stringify(b)})'>Editar</button>
+        <button class="perigo" onclick="excluirBanner('${b.id}')">Excluir</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+document.getElementById('imagemBanner').addEventListener('change', async (e) => {
+  const arquivo = e.target.files[0];
+  if (!arquivo) return;
+  const status = document.getElementById('statusBanner');
+  try {
+    status.style.color = '#555';
+    status.textContent = 'Enviando imagem...';
+    const url = await enviarImagem(arquivo);
+    document.getElementById('bannerImagemUrl').value = url;
+    const preview = document.getElementById('previewBanner');
+    preview.src = url;
+    preview.style.display = 'block';
+    status.style.color = '#16a34a';
+    status.textContent = 'Imagem enviada. Agora clique em "Salvar banner".';
+  } catch (err) {
+    status.style.color = '#dc2626';
+    status.textContent = 'Erro: ' + err.message;
+  }
+});
+
+function editarBanner(b) {
+  document.getElementById('bannerId').value = b.id;
+  document.getElementById('bannerImagemUrl').value = b.imagemUrl || '';
+  document.getElementById('bannerLink').value = b.link || '';
+  document.getElementById('bannerOrdem').value = b.ordem;
+  const preview = document.getElementById('previewBanner');
+  if (b.imagemUrl) {
+    preview.src = b.imagemUrl;
+    preview.style.display = 'block';
+  } else {
+    preview.style.display = 'none';
+  }
+  window.scrollTo(0, document.body.scrollHeight);
+}
+
+function limparFormularioBanner() {
+  document.getElementById('bannerId').value = '';
+  document.getElementById('bannerImagemUrl').value = '';
+  document.getElementById('bannerLink').value = '';
+  document.getElementById('bannerOrdem').value = '0';
+  document.getElementById('imagemBanner').value = '';
+  document.getElementById('previewBanner').style.display = 'none';
+}
+
+async function salvarBanner() {
+  const id = document.getElementById('bannerId').value;
+  const imagemUrl = document.getElementById('bannerImagemUrl').value;
+
+  if (!imagemUrl) {
+    document.getElementById('statusBanner').style.color = '#dc2626';
+    document.getElementById('statusBanner').textContent = 'Envie uma imagem antes de salvar.';
+    return;
+  }
+
+  const dados = {
+    imagemUrl,
+    link: document.getElementById('bannerLink').value || null,
+    ordem: parseInt(document.getElementById('bannerOrdem').value) || 0
+  };
+
+  const status = document.getElementById('statusBanner');
+
+  try {
+    let res;
+    if (id) {
+      res = await fetch(`${API_BASE}/banners/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dados)
+      });
+    } else {
+      res = await fetch(`${API_BASE}/banners`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dados)
+      });
+    }
+
+    if (!res.ok) {
+      const erro = await res.json();
+      status.style.color = '#dc2626';
+      status.textContent = 'Erro: ' + (erro.erro || 'não foi possível salvar');
+      return;
+    }
+
+    status.style.color = '#16a34a';
+    status.textContent = 'Banner salvo com sucesso.';
+    limparFormularioBanner();
+    carregarBanners();
+  } catch (e) {
+    status.style.color = '#dc2626';
+    status.textContent = 'Erro de conexão com o backend.';
+  }
+}
+
+async function excluirBanner(id) {
+  if (!confirm('Tem certeza que deseja excluir este banner?')) return;
+  await fetch(`${API_BASE}/banners/${id}`, { method: 'DELETE' });
+  carregarBanners();
+}
+
 carregarCategorias().then(carregarProdutos);
+carregarBanners();
 </script>
 
 </body>
