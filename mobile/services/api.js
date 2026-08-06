@@ -2,6 +2,18 @@ import Constants from 'expo-constants';
 
 const API_URL = Constants.expoConfig?.extra?.apiUrl || 'http://localhost:3000/api';
 
+// URL base sem o "/api" no final, usada para montar o link completo das imagens
+// (o backend salva o caminho da imagem como algo tipo "/uploads/arquivo.jpg")
+const SERVER_URL = API_URL.replace(/\/api\/?$/, '');
+
+// Transforma um caminho relativo de imagem (ex: "/uploads/produto.jpg")
+// em uma URL completa que o celular consegue carregar.
+export function getMediaUrl(caminho) {
+  if (!caminho) return null;
+  if (caminho.startsWith('http')) return caminho; // já é uma URL completa
+  return `${SERVER_URL}${caminho}`;
+}
+
 async function request(path, options = {}) {
   const res = await fetch(`${API_URL}${path}`, {
     headers: { 'Content-Type': 'application/json' },
@@ -23,6 +35,7 @@ export const api = {
   getProducts: (categoriaSlug) =>
     request(categoriaSlug ? `/products?categoria=${categoriaSlug}` : '/products'),
   getProduct: (id) => request(`/products/${id}`),
+  getBanners: () => request('/banners?apenasAtivos=true'),
   registerCustomer: (dados) =>
     request('/customers', { method: 'POST', body: JSON.stringify(dados) }),
   login: (email, senha) =>
