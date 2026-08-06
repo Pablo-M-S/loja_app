@@ -1,16 +1,15 @@
 import React from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { getMediaUrl } from '../services/api';
 
 const VERDE = '#1C682E';
 
-// Card de produto para listas horizontais (prateleiras por categoria).
-// Diferente do ProductCard (grade 2 colunas), este tem largura fixa.
 export default function ProductCardShelf({ product, onAdd }) {
   return (
     <View style={styles.card}>
       <Image
-        source={product.imagemUrl ? { uri: product.imagemUrl } : require('../assets/logo.png')}
+        source={product.imagemUrl ? { uri: getMediaUrl(product.imagemUrl) } : require('../assets/logo.png')}
         style={styles.image}
         resizeMode="cover"
       />
