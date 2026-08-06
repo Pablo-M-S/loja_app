@@ -23,7 +23,8 @@ db.defaults({
   categories: [],
   products: [],
   customers: [],
-  admins: []
+  admins: [],
+  banners: []
 }).write();
 
 module.exports = db;
