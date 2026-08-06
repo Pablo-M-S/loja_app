@@ -1,32 +1,31 @@
 {
-    "expo": {
-        "name": "Minha Loja",
-            "slug": "loja-mobile",
-                "version": "0.1.0",
-                    "orientation": "portrait",
-                        "icon": "./assets/icon.png",
-                            "userInterfaceStyle": "light",
-                                "splash": {
-                                      "image": "./assets/splash.png",
-                                            "resizeMode": "contain",
-                                                  "backgroundColor": "#ffffff"
-                                                      },
-                                                          "android": {
-                                                                "package": "com.suaempresa.loja",
-                                                                      "adaptiveIcon": {
-                                                                              "foregroundImage": "./assets/adaptive-icon.png",
-                                                                                      "backgroundColor": "#ffffff"
-                                                                                            }
-                                                                                                },
-                                                                                                    "plugins": [
-                                                                                                          "@react-native-google-signin/google-signin"
-                                                                                                              ],
-                                                                                                                  "extra": {
-                                                                                                                        "apiUrl": "https://lojaapp-production-611f.up.railway.app/api",
-                                                                                                                              "eas": {
-                                                                                                                                      "projectId": "3f904ef1-d6ec-45ea-ba51-3d03bc06e459"
-                                                                                                                                            }
-                                                                                                                                                }
-                                                                                                                                                  }
-                                                                                                                                                  }
+  "expo": {
+    "name": "Minha Loja",
+    "slug": "loja-mobile",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "android": {
+      "package": "com.suaempresa.loja",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      }
+    },
+    "plugins": [
+      "@react-native-google-signin/google-signin"
+    ],
+    "extra": {
+      "apiUrl": "https://lojaapp-production-611f.up.railway.app/api",
+      "eas": {
+        "projectId": "3f904ef1-d6ec-45ea-ba51-3d03bc06e459"
+      }
+    }
+  }
 }
