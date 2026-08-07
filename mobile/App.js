@@ -13,6 +13,7 @@ import HomeScreen from './screens/HomeScreen'; // agora é a tela "Categorias" d
 import CategoryScreen from './screens/CategoryScreen';
 import CartScreen from './screens/CartScreen';
 import ProfileScreen from './screens/ProfileScreen';
+import CheckoutScreen from './screens/CheckoutScreen';
 import CustomDrawerContent from './components/CustomDrawerContent';
 import CartButton from './components/CartButton';
 
@@ -67,9 +68,14 @@ export default function App() {
               component={ProfileScreen}
               options={{ title: 'Meus Dados', headerStyle: { backgroundColor: VERDE }, headerTintColor: '#fff' }}
             />
+            <Stack.Screen
+              name="Checkout"
+              component={CheckoutScreen}
+              options={{ title: 'Finalizar Pedido', headerStyle: { backgroundColor: VERDE }, headerTintColor: '#fff' }}
+            />
           </Stack.Navigator>
         </NavigationContainer>
       </CartProvider>
     </GestureHandlerRootView>
   );
-                       }
+  }
