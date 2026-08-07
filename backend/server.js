@@ -30,6 +30,8 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/banners', bannersRoutes);
 app.use('/api/frete', freteRoutes);
 app.use('/api/pedidos', pedidosRoutes);
+app.use('/api/frete', require('./routes/frete'));
+app.use('/api/pagamento', require('./routes/pagamento')); // <- update
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', mensagem: 'Backend da loja rodando' });
