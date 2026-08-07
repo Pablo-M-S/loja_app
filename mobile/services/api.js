@@ -45,4 +45,8 @@ export const api = {
   getCustomer: (id) => request(`/customers/${id}`),
   updateCustomer: (id, dados) =>
     request(`/customers/${id}`, { method: 'PUT', body: JSON.stringify(dados) })
+  criarPedido: (dados) =>
+    request('/pedidos', { method: 'POST', body: JSON.stringify(dados) }),
+  cotarFrete: (dados) =>
+    request('/frete/cotacao', { method: 'POST', body: JSON.stringify(dados) }),
 };
