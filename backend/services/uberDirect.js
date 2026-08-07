@@ -109,4 +109,72 @@ async function cotarEntrega(enderecoCliente) {
   return dados;
 }
 
-module.exports = { cotarEntrega, formatarEndereco, enderecoDaLoja };
+// Cria a entrega de verdade na Uber Direct, depois que o pagamento foi confirmado.
+// dadosEntrega = {
+//   enderecoCliente: { rua, numero, complemento, bairro, cidade, estado, cep },
+//   nomeCliente, telefoneCliente,
+//   itens: [{ nome, quantidade }],
+//   quoteId (opcional, mas recomendado - trava o preço já cotado)
+// }
+async function criarEntrega(dadosEntrega) {
+  const { UBER_CUSTOMER_ID } = process.env;
+  if (!UBER_CUSTOMER_ID) {
+    throw new Error('UBER_CUSTOMER_ID não configurado');
+  }
+
+  const {
+    enderecoCliente,
+    nomeCliente,
+    telefoneCliente,
+    itens = [],
+    quoteId
+  } = dadosEntrega;
+
+  if (!enderecoCliente || !nomeCliente || !telefoneCliente) {
+    throw new Error('Dados incompletos para criar entrega (enderecoCliente, nomeCliente, telefoneCliente são obrigatórios)');
+  }
+
+  const token = await obterAccessToken();
+
+  const corpo = {
+    pickup_address: formatarEndereco(enderecoDaLoja()),
+    pickup_name: process.env.LOJA_NOME || 'Minha Loja',
+    pickup_phone_number: process.env.LOJA_TELEFONE,
+
+    dropoff_address: formatarEndereco(enderecoCliente),
+    dropoff_name: nomeCliente,
+    dropoff_phone_number: telefoneCliente,
+
+    manifest_items: itens.map(item => ({
+      name: item.nome,
+      quantity: item.quantidade
+    }))
+  };
+
+  // Se veio o ID da cotação já feita, usa ele pra travar o preço combinado.
+  if (quoteId) {
+    corpo.quote_id = quoteId;
+  }
+
+  const resposta = await fetch(`${UBER_API_URL}/customers/${UBER_CUSTOMER_ID}/deliveries`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify(corpo)
+  });
+
+  const dados = await resposta.json().catch(() => null);
+
+  if (!resposta.ok) {
+    const mensagem = dados?.message || 'Falha ao criar entrega na Uber Direct';
+    const erro = new Error(mensagem);
+    erro.detalhes = dados;
+    throw erro;
+  }
+
+  return dados; // contém delivery_id, tracking_url, status, etc.
+}
+
+module.exports = { cotarEntrega, criarEntrega, formatarEndereco, enderecoDaLoja };
