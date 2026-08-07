@@ -3,6 +3,7 @@ const cors = require('cors');
 const path = require('path');
 require('dotenv').config();
 const freteRoutes = require('./routes/frete');
+const pedidosRoutes = require('./routes/pedidos');
 const categoriesRoutes = require('./routes/categories');
 const productsRoutes = require('./routes/products');
 const customersRoutes = require('./routes/customers');
@@ -28,6 +29,8 @@ app.use('/api/customers', customersRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/banners', bannersRoutes);
 app.use('/api/frete', freteRoutes);
+app.use('/api/pedidos', pedidosRoutes);
+
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', mensagem: 'Backend da loja rodando' });
 });
