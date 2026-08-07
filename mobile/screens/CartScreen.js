@@ -63,8 +63,7 @@ export default function CartScreen({ navigation }) {
       );
       return;
     }
-    // Checkout em si ainda não implementado (pendência separada do handoff).
-    Alert.alert('Quase lá', 'O checkout completo ainda está sendo desenvolvido. Em breve!');
+    navigation.navigate('Checkout');
   }
 
   function renderItem({ item }) {
