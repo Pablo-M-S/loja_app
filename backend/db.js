@@ -24,7 +24,8 @@ db.defaults({
   products: [],
   customers: [],
   admins: [],
-  banners: []
+  banners: [],
+  pedidos: []
 }).write();
 
 module.exports = db;
