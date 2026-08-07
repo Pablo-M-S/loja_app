@@ -48,5 +48,11 @@ export const api = {
   criarPedido: (dados) =>
     request('/pedidos', { method: 'POST', body: JSON.stringify(dados) }),
   cotarFrete: (dados) =>
-    request('/frete/cotacao', { method: 'POST', body: JSON.stringify(dados) })
+    request('/frete/cotacao', { method: 'POST', body: JSON.stringify(dados) }),
+  criarPagamentoPix: (dados) =>
+    request('/pagamento/pix', { method: 'POST', body: JSON.stringify(dados) }),
+  consultarStatusPagamento: (orderId) =>
+    request(`/pagamento/status/${orderId}`),
+  criarEntrega: (dados) =>
+    request('/frete/entrega', { method: 'POST', body: JSON.stringify(dados) })
 };
