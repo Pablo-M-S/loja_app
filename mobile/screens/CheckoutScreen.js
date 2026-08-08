@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Clipboard from 'expo-clipboard';
 import QRCode from 'react-native-qrcode-svg';
 import { useCart } from '../context/CartContext';
 import { api } from '../services/api';
@@ -43,6 +44,7 @@ export default function CheckoutScreen({ navigation }) {
   const [modalPixVisivel, setModalPixVisivel] = useState(false);
   const [pedidoPix, setPedidoPix] = useState(null); // { orderId, qrCodeTexto, ... }
   const [statusPagamento, setStatusPagamento] = useState('PENDING');
+  const [copiado, setCopiado] = useState(false);
   const pollingRef = useRef(null);
 
   useEffect(() => {
@@ -114,6 +116,7 @@ export default function CheckoutScreen({ navigation }) {
 
       setPedidoPix(pedido);
       setStatusPagamento('PENDING');
+      setCopiado(false);
       setModalPixVisivel(true);
       iniciarPolling(pedido.orderId);
     } catch (erro) {
@@ -152,6 +155,13 @@ export default function CheckoutScreen({ navigation }) {
       clearInterval(pollingRef.current);
       pollingRef.current = null;
     }
+  }
+
+  async function copiarPix() {
+    if (!pedidoPix?.qrCodeTexto) return;
+    await Clipboard.setStringAsync(pedidoPix.qrCodeTexto);
+    setCopiado(true);
+    setTimeout(() => setCopiado(false), 3000);
   }
 
   // Passo 4: pagamento confirmado — registra o pedido e dispara a entrega real na Uber Direct.
@@ -316,6 +326,15 @@ export default function CheckoutScreen({ navigation }) {
 
             <Text style={styles.modalValor}>R$ {totalGeral.toFixed(2)}</Text>
 
+            {pedidoPix?.qrCodeTexto && (
+              <TouchableOpacity style={styles.copiarBtn} onPress={copiarPix}>
+                <Ionicons name={copiado ? 'checkmark' : 'copy-outline'} size={16} color={VERDE} />
+                <Text style={styles.copiarTexto}>
+                  {copiado ? 'Copiado!' : 'Pix copia e cola'}
+                </Text>
+              </TouchableOpacity>
+            )}
+
             {statusPagamento === 'PENDING' && (
               <View style={styles.linhaFrete}>
                 <ActivityIndicator color={VERDE} />
@@ -392,6 +411,12 @@ const styles = StyleSheet.create({
   modalTitulo: { fontSize: 18, fontWeight: 'bold', color: '#222', marginBottom: 16 },
   qrWrapper: { padding: 12, backgroundColor: '#fff', borderRadius: 12, marginBottom: 16 },
   modalValor: { fontSize: 20, fontWeight: 'bold', color: VERDE, marginBottom: 16 },
+  copiarBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    borderWidth: 1, borderColor: VERDE, borderRadius: 10,
+    paddingVertical: 10, paddingHorizontal: 16, marginBottom: 16,
+  },
+  copiarTexto: { color: VERDE, fontWeight: '600', fontSize: 14 },
   cancelarBtn: { marginTop: 16, paddingVertical: 8 },
   cancelarTexto: { color: '#c0392b', fontWeight: '600' },
 });
