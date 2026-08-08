@@ -9,11 +9,12 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { CartProvider } from './context/CartContext';
 import SplashScreen from './screens/SplashScreen';
 import RegisterScreen from './screens/RegisterScreen';
-import HomeScreen from './screens/HomeScreen'; // agora é a tela "Categorias" do menu
+import HomeScreen from './screens/HomeScreen';
 import CategoryScreen from './screens/CategoryScreen';
 import CartScreen from './screens/CartScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import CheckoutScreen from './screens/CheckoutScreen';
+import OrdersScreen from './screens/OrdersScreen';
 import CustomDrawerContent from './components/CustomDrawerContent';
 import CartButton from './components/CartButton';
 
@@ -72,6 +73,11 @@ export default function App() {
               name="Checkout"
               component={CheckoutScreen}
               options={{ title: 'Finalizar Pedido', headerStyle: { backgroundColor: VERDE }, headerTintColor: '#fff' }}
+            />
+            <Stack.Screen
+              name="Orders"
+              component={OrdersScreen}
+              options={{ title: 'Meus Pedidos', headerStyle: { backgroundColor: VERDE }, headerTintColor: '#fff' }}
             />
           </Stack.Navigator>
         </NavigationContainer>
