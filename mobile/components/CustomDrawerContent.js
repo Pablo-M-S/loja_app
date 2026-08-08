@@ -27,6 +27,12 @@ export default function CustomDrawerContent(props) {
             onPress={() => props.navigation.navigate('Categorias')}
           />
           <DrawerItem
+            label="Meus Pedidos"
+            labelStyle={styles.label}
+            icon={({ size }) => <Ionicons name="receipt-outline" size={size} color={VERDE} />}
+            onPress={() => props.navigation.getParent()?.navigate('Orders')}
+          />
+          <DrawerItem
             label="Meus Dados"
             labelStyle={styles.label}
             icon={({ size }) => <Ionicons name="person-outline" size={size} color={VERDE} />}
