@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 import { useCart } from '../context/CartContext';
-import { api } from '../services/api';
+import { api, getMediaUrl } from '../services/api';
 
 const VERDE = '#1C682E';
 const VERDE_CLARO = '#EAF5EC';
@@ -70,7 +70,7 @@ export default function CartScreen({ navigation }) {
     return (
       <View style={styles.item}>
         <Image
-          source={item.imagemUrl ? { uri: item.imagemUrl } : require('../assets/logo.png')}
+          source={item.imagemUrl ? { uri: getMediaUrl(item.imagemUrl) } : require('../assets/logo.png')}
           style={styles.imagem}
           resizeMode="cover"
         />
