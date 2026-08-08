@@ -5,18 +5,21 @@ import { getMediaUrl } from '../services/api';
 
 const VERDE = '#1C682E';
 
-export default function ProductCard({ product, onAdd }) {
+export default function ProductCard({ product, onAdd, onPress }) {
   return (
     <View style={styles.card}>
-      <Image
-        source={product.imagemUrl ? { uri: getMediaUrl(product.imagemUrl) } : require('../assets/logo.png')}
-        style={styles.image}
-        resizeMode="cover"
-      />
-      <View style={styles.info}>
-        <Text style={styles.nome} numberOfLines={2}>{product.nome}</Text>
-        <Text style={styles.preco}>R$ {Number(product.preco).toFixed(2)}</Text>
-      </View>
+      <TouchableOpacity activeOpacity={0.8} onPress={() => onPress?.(product)}>
+        <Image
+          source={product.imagemUrl ? { uri: getMediaUrl(product.imagemUrl) } : require('../assets/logo.png')}
+          style={styles.image}
+          resizeMode="cover"
+        />
+        <View style={styles.info}>
+          <Text style={styles.nome} numberOfLines={2}>{product.nome}</Text>
+          <Text style={styles.preco}>R$ {Number(product.preco).toFixed(2)}</Text>
+        </View>
+      </TouchableOpacity>
+
       <TouchableOpacity style={styles.addButton} onPress={() => onAdd(product)}>
         <Ionicons name="add" size={22} color="#fff" />
       </TouchableOpacity>
