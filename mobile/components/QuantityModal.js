@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Modal, View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { getMediaUrl } from '../services/api';
 
 const VERDE = '#1C682E';
 
@@ -29,7 +30,7 @@ export default function QuantityModal({ visible, product, onClose, onConfirm }) 
           </TouchableOpacity>
 
           <Image
-            source={product.imagemUrl ? { uri: product.imagemUrl } : require('../assets/logo.png')}
+            source={product.imagemUrl ? { uri: getMediaUrl(product.imagemUrl) } : require('../assets/logo.png')}
             style={styles.image}
             resizeMode="cover"
           />
