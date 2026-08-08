@@ -13,7 +13,7 @@ function proximoNumeroPedido() {
 // Recebe os itens do carrinho e a cotação de frete já calculada,
 // busca o cliente para tirar um "retrato" do endereço no momento da compra.
 router.post('/', (req, res) => {
-  const { clienteId, itens, frete } = req.body;
+  const { clienteId, itens, frete, pagamento } = req.body;
 
   if (!clienteId || !itens || !Array.isArray(itens) || itens.length === 0) {
     return res.status(400).json({ erro: 'clienteId e itens são obrigatórios' });
@@ -26,6 +26,7 @@ router.post('/', (req, res) => {
   const itensProcessados = itens.map((item) => ({
     produtoId: item.id,
     nome: item.nome,
+    imagemUrl: item.imagemUrl || null,
     precoUnitario: Number(item.preco),
     quantidade: Number(item.quantidade),
     subtotal: Number(item.preco) * Number(item.quantidade)
@@ -49,8 +50,9 @@ router.post('/', (req, res) => {
       duracaoEstimadaMinutos: frete?.duracaoEstimadaMinutos || null,
       quoteId: frete?.quoteId || null
     },
+    pagamento: pagamento || null,
     total,
-    status: 'aguardando_pagamento',
+    status: pagamento ? 'em_preparo' : 'aguardando_pagamento',
     criadoEm: new Date().toISOString()
   };
 
@@ -58,9 +60,17 @@ router.post('/', (req, res) => {
   res.status(201).json(novoPedido);
 });
 
-// GET /api/pedidos - lista todos os pedidos (uso do admin), mais recentes primeiro
+// GET /api/pedidos - lista pedidos, mais recentes primeiro
+// Sem parâmetro: lista todos (uso do admin)
+// Com ?clienteId=X: lista só os pedidos daquele cliente (uso do app mobile)
 router.get('/', (req, res) => {
-  const pedidos = db.get('pedidos').value();
+  const { clienteId } = req.query;
+  let pedidos = db.get('pedidos').value();
+
+  if (clienteId) {
+    pedidos = pedidos.filter((p) => p.clienteId === clienteId);
+  }
+
   const ordenados = [...pedidos].sort((a, b) => new Date(b.criadoEm) - new Date(a.criadoEm));
   res.json(ordenados);
 });
