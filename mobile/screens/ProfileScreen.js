@@ -8,6 +8,7 @@ import { api } from '../services/api';
 
 const VERDE = '#1C682E';
 const VERDE_CLARO = '#EAF5EC';
+const VERMELHO = '#c0392b';
 
 const ZONA_LABEL = {
   grande_sp: 'Grande São Paulo',
@@ -119,6 +120,25 @@ export default function ProfileScreen({ navigation }) {
     }
   }
 
+  function confirmarLogout() {
+    Alert.alert(
+      'Sair da conta',
+      'Tem certeza que deseja sair?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Sair', style: 'destructive', onPress: sair }
+      ]
+    );
+  }
+
+  async function sair() {
+    await AsyncStorage.removeItem('cliente');
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Register' }]
+    });
+  }
+
   if (carregando) {
     return (
       <View style={styles.centro}>
@@ -206,6 +226,10 @@ export default function ProfileScreen({ navigation }) {
       <TouchableOpacity style={styles.botaoPrincipal} onPress={salvar} disabled={salvando}>
         <Text style={styles.textoBotaoPrincipal}>{salvando ? 'Salvando...' : 'Salvar alterações'}</Text>
       </TouchableOpacity>
+
+      <TouchableOpacity style={styles.botaoSair} onPress={confirmarLogout}>
+        <Text style={styles.textoBotaoSair}>Sair da conta</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 }
@@ -234,7 +258,12 @@ const styles = StyleSheet.create({
   tipoBtnTextoAtivo: { color: '#fff' },
   botaoPrincipal: {
     backgroundColor: VERDE, borderRadius: 12, paddingVertical: 16,
-    alignItems: 'center', marginTop: 24, marginBottom: 24,
+    alignItems: 'center', marginTop: 24, marginBottom: 12,
   },
   textoBotaoPrincipal: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
+  botaoSair: {
+    borderWidth: 1, borderColor: VERMELHO, borderRadius: 12, paddingVertical: 14,
+    alignItems: 'center', marginBottom: 24,
+  },
+  textoBotaoSair: { color: VERMELHO, fontWeight: 'bold', fontSize: 15 },
 });
